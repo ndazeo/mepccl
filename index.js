@@ -11,8 +11,9 @@ app = express()
   .use(express.static(path.join(__dirname, 'public')))
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
-  .get('/', (req, res) => res.render('pages/index'))
+  //.get('/', (req, res) => res.render('pages/index'))
   .get('/data', data)
+  .get('/', table)
   .get('/table', table)
   .get('/update', update)
   .get('/prices/:bond', (req, res) => getPrices(res, req.params.bond))
@@ -46,6 +47,10 @@ function getPrice(bond, then) {
   });
 }
 
+async function getPrices(res, bond) {
+  res.json(await updateBond(bond));
+}
+
 async function updateBond(bond) {
   console.log("update: " + bond);
   const pAr = await getPrice(bond + "");
@@ -56,9 +61,6 @@ async function updateBond(bond) {
   return result;
 }
 
-async function getPrices(res, bond) {
-  res.json(await updateBond(bond));
-}
 
 async function update(_req, res) {
   const rows = await list()
