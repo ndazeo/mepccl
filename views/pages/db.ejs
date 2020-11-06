@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <% include ../partials/header.ejs %>
+  <link rel="stylesheet" type="text/css" href="/stylesheets/table.css" />
+</head>
+
+<body>
+
+  <% include ../partials/nav.ejs %>
+
+  <div class="container">
+    <h2>Database Results</h2>
+
+    <table>
+      <tr>
+        <th>Bono</th>
+        <th></th>
+        <th>D</th>
+        <th>C</th>
+        <th>MEP</th>
+        <th>CCL</th>
+        <th>CCL/MEP</th>
+      </tr>
+      <% results.forEach(function(r) { %>
+      <tr>
+        <td><%= r['bond'] %></td>
+        <td><%= r['a'] %></td>
+        <td><%= r['d'] %></td>
+        <td><%= r['c'] %></td>
+        <td><%= r['a']/r['d'] %></td>
+        <td><%= r['a']/r['c'] %></td>
+        <td><%= r['c']/r['d'] %></td>
+      </tr>
+      <% }); %>
+    </table>
+    <canvas id="myChart"></canvas>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+  <script src="/js/chart.js"></script>
+</body>
+
+</html>
