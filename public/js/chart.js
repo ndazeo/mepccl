@@ -38,7 +38,4 @@ async function setChart() {
     });
 }
 
-
-window.onload = function () {
-    setChart();
-}
+window.addEventListener('load', setChart, false);
