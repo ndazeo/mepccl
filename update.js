@@ -41,4 +41,4 @@ async function update(_req, res) {
     res.json(result);
 }
 
-await update();
+update();
