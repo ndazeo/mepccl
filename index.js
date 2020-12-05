@@ -3,7 +3,7 @@ const path = require('path')
 const request = require('request');
 const DOMParser = require('dom-parser');
 const parser = new DOMParser();
-const href = "https://www.invertironline.com/titulo/cotizacion/BCBA/"
+const href = process.env.HREF
 const PORT = process.env.PORT || 5000
 const { get, set, list } = require('./database');
 
