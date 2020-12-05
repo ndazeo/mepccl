@@ -41,4 +41,17 @@ async function update(_req, res) {
     res.json(result);
 }
 
-update();
+function getTime() {
+    const todayAR = new Date().toLocaleString("es-AR", {
+        timeZone: "America/Buenos_Aires"
+    });
+    return new Date(todayAR);
+}
+
+const now = getTime();
+const wday = now.getDay();
+const hour = now.getHours();
+
+if (0 < wday && wday < 6 && 9 < hour && hour < 18){
+        update();
+}
