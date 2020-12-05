@@ -1,48 +1,54 @@
 const express = require('express')
 const path = require('path')
-const request = require('request');
+const fetch = require('node-fetch');
 const DOMParser = require('dom-parser');
 const parser = new DOMParser();
 const href = process.env.HREF
-const { set, list } = require('./database');
+const { set } = require('./database');
 
-function getPrice(bond, then) {
-    return new Promise(function (resolve, reject) {
-        request.get(href + bond, (error, response, body) => {
-            if (!error && response.statusCode == 200) {
-                const spans = parser.parseFromString(body, "text/html")
-                    .getElementById("IdTitulo").getElementsByTagName("span");
-                spans.forEach(element => {
-                    if (element.getAttribute("data-field") == "UltimoPrecio") {
-                        resolve(Number.parseFloat(element.textContent.replace(".", "").replace(",", ".")));
-                    }
-                });
+async function getTable() {
+    const res = await fetch(href).catch(e => { console.log(e) });
+    const body = await res.text().catch(e => { console.log(e) });
+    const rows = parser.parseFromString(body, "text/html")
+        .getElementById("cotizaciones").getElementsByTagName("tr")
+        .map(row => [row.getElementsByTagName("b")[0].innerHTML.trim(), row.getElementsByTagName("td")[1].innerHTML.trim().replace(".", "").replace(",", ".")])
+        .sort();
+    
+    var table = new Map();
+    rows.forEach(
+        row => {
+            var key = row[0][row[0].length - 1];
+            var code = row[0];
+            if (key == "C" || key == "D") {
+                code = code.substr(0, row[0].length - 1);
+                key = 1 + (key == "C");
             } else {
-                reject(error);
+                key = 0;
             }
-        });
+            values = [0,0,0];
+            if (table.has(code)) {
+                values = table.get(code);
+            }
+            values[key] = row[1];
+            table.set(code, values)
+        }
+    )
+    
+    return table;
+}
+
+
+async function update() {
+    const rows = await getTable().catch(e => { console.log(e) });
+    rows.forEach((values, bond) => {
+        if (values[2] != 0) {
+            set(bond, values);
+        }
     });
 }
 
-async function updateBond(bond) {
-    console.log("update: " + bond);
-    const pAr = await getPrice(bond + "");
-    const pDr = await getPrice(bond + "D");
-    const pCr = await getPrice(bond + "C");
-    const values = await Promise.all([pAr, pDr, pCr]);
-    const result = await set(bond, values);
-    return result;
-}
-
-async function update(_req, res) {
-    const rows = await list()
-    const bonds = rows.map(rows => rows['bond']);
-    const result = await Promise.all(bonds.map(updateBond));
-    res.json(result);
-}
-
 function getTime() {
-    const todayAR = new Date().toLocaleString("es-AR", {
+    const todayAR = new Date().toLocaleString("en-US", {
         timeZone: "America/Buenos_Aires"
     });
     return new Date(todayAR);
@@ -51,7 +57,7 @@ function getTime() {
 const now = getTime();
 const wday = now.getDay();
 const hour = now.getHours();
-
-if (0 < wday && wday < 6 && 9 < hour && hour < 18){
-        update();
+if (0 < wday && wday < 6 && 9 < hour && hour < 18) {
+    console.log("Updating");
+    update();
 }
